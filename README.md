@@ -60,6 +60,7 @@ Smart-Aqua-Lab to kompleksowe rozwiązanie do monitorowania parametrów akwarium
 - pH alternatywa E-201C-Blue
 - TDS Sensor/Meter For Water Quality 
 - Czujniki temperatury ds18b20
+- Gravity Dissolved Oxygen Sensor (DO)
 - Arduino (kontroler główny)
 - ESP8266 (komunikacja Wi-Fi)
 - ESP32-CAM (monitoring wizyjny)
