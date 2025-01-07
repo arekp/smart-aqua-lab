@@ -57,7 +57,9 @@ Smart-Aqua-Lab to kompleksowe rozwiązanie do monitorowania parametrów akwarium
 
 ### Sensory i kontrolery
 - Moduł pomiaru pH (PH4502C)
-- Czujniki temperatury
+- pH alternatywa E-201C-Blue
+- TDS Sensor/Meter For Water Quality 
+- Czujniki temperatury ds18b20
 - Arduino (kontroler główny)
 - ESP8266 (komunikacja Wi-Fi)
 - ESP32-CAM (monitoring wizyjny)
@@ -81,6 +83,7 @@ System składa się z trzech głównych warstw:
 ## 📚 Biblioteki i zależności
 
 - [Biblioteka PH4502C](https://github.com/nthnn/PH4502C-Sensor?tab=readme-ov-file) - obsługa czujnika pH
+- [Podobny projekt](https://www.hackster.io/vilaksh01/aquamon-aquaponics-and-fish-tank-monitoring-with-tuya-iot-e025a8)
 - *Lista będzie uzupełniana*
 
 ## 📈 Planowany rozwój
