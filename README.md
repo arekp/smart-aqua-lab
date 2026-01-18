@@ -28,6 +28,8 @@ System opiera się na architekturze rozproszonej podzielonej na trzy warstwy:
 | **Wyświetlacz** | OLED SSD1306 (128x32) | Lokalny podgląd parametrów |
 | **Czujnik Jakości** | TDS Meter v1.0 | Pomiar czystości wody (https://pl.aliexpress.com/item/1005009863408748.html?spm=a2g0o.order_list.order_list_main.5.21ef1c24wieUSz&gatewayAdapt=glo2pol)[link] |
 | **Zasilanie** | Stabilizowane 5V DC | Zasilanie modułów pH i ESP |
+| **Czujnik światła (PAR/Lux)**| Dla akwariów roślinnych lub morskich. Pozwala sprawdzić, czy diody LED nie tracą mocy z czasem.||
+| **Pomiar CO2 (Drop Checker AI)** | Zamiast drogich sond CO2, możesz skierować kamerę na szklany indykator (drop checker) i za pomocą OpenCV analizować jego kolor (niebieski/zielony/żółty).||
 
 ### 2. Stack Technologiczny
 *   **Embedded:** ESPHome, Arduino Framework, FreeRTOS.
@@ -70,6 +72,87 @@ Prawidłowa kalibracja jest kluczowa dla dokładności systemu.
 3.  **Kalibracja Nachylenia (Slope):**
     *   Zanurz sondę w roztworze pH 4.0.
     *   Dostosuj mnożnik (standardowo 3.5) w sekcji `lambda` konfiguracji, aby odczyt był zgodny z roztworem.
+
+### 1. Czujnik Światła (Lux/PAR) na ESP8266
+
+Zamiast budować drogi luksomierz, użyjemy czujnika **BH1750**. Jest on bardzo precyzyjny, tani i komunikuje się przez I2C, co oznacza, że możesz go podłączyć do tych samych pinów, co Twój wyświetlacz OLED.
+
+#### Sprzęt:
+*   **Czujnik:** BH1750 (nazywany też GY-302).
+*   **Podłączenie:** SDA i SCL do tych samych pinów co OLED (GPIO4 i GPIO5). ESP8266 obsłuży oba urządzenia na jednej magistrali.
+
+#### Implementacja w ESPHome:
+Dodaj poniższy blok do swojego pliku `.yaml`:
+
+```yaml
+sensor:
+  - platform: bh1750
+    name: "Intensywność światła"
+    address: 0x23
+    update_interval: 60s
+    unit_of_measurement: "lx"
+    id: lux_meter
+
+  # Przelicznik na PAR (uproszczony dla LED)
+  - platform: template
+    name: "Szacowane PAR"
+    unit_of_measurement: "µmol/m²/s"
+    lambda: |-
+      return id(lux_meter).state / 54.0; 
+```
+*Uwaga: Przelicznik `54.0` jest orientacyjny dla białych diod LED (tzw. LER - Luminous Efficacy Radiation). Pozwala on oszacować, ile światła faktycznie dociera do roślin.*
+
+#### Zastosowanie:
+*   **Monitoring zużycia LED:** Zapisuj maksymalne natężenie światła w południe. Jeśli po roku spadnie o 15%, system powiadomi Cię o konieczności wymiany diod.
+*   **Długość dnia:** W Home Assistant możesz stworzyć wykres "Light Hours", który pokaże, czy czas świecenia jest stabilny.
+
+---
+
+### 2. Monitorowanie CO2 (Drop Checker AI)
+
+To najbardziej innowacyjna część. Drop Checker to szklany pojemnik z płynem (reagentem), który zmienia kolor:
+*   **Niebieski:** Za mało CO2.
+*   **Zielony:** Optymalnie (~30 mg/l).
+*   **Żółty:** Za dużo (niebezpieczne dla ryb!).
+
+#### Jak to zrealizować?
+Nie potrzebujemy sensora CO2 za 500 zł. Wykorzystamy Twoją **ESP32-CAM**.
+
+**Krok 1: Umiejscowienie**
+Zamocuj Drop Checker w akwarium tak, aby znajdował się w polu widzenia kamery (najlepiej w rogu, blisko szyby).
+
+**Krok 2: Analiza obrazu (OpenCV w Pythonie)**
+Ponieważ ESP32-CAM jest za słabe na pełne OpenCV, analizę wykonamy na serwerze (tam, gdzie masz FastAPI lub Home Assistant).
+
+**Logika algorytmu:**
+1.  Wytnij mały fragment obrazu (ROI - Region of Interest), gdzie znajduje się Drop Checker.
+2.  Przekonwertuj obraz z formatu RGB na **HSV** (Hue, Saturation, Value). Kolor w HSV jest znacznie łatwiejszy do zidentyfikowania niż w RGB (gdzie zmiana oświetlenia psuje wyniki).
+3.  Zlicz dominujący odcień (Hue):
+    *   Hue 160-240: Niebieski.
+    *   Hue 80-140: Zielony.
+    *   Hue 30-70: Żółty.
+
+**Przykładowy kod Python (do backendu):**
+```python
+import cv2
+import numpy as np
+
+def analyze_co2(image_path):
+    img = cv2.imread(image_path)
+    # Wycięcie fragmentu z drop checkerem (parametry do ustalenia)
+    drop_checker = img[100:200, 150:250] 
+    
+    hsv = cv2.cvtColor(drop_checker, cv2.COLOR_BGR2HSV)
+    avg_hue = np.mean(hsv[:,:,0]) # Średni odcień
+    
+    if avg_hue > 160: return "LOW"
+    elif avg_hue > 80: return "OPTIMAL"
+    else: return "DANGER_HIGH"
+```
+
+#### Zastosowanie:
+*   **Automatyczny wyłącznik:** Jeśli system wykryje kolor żółty, Home Assistant przez MQTT natychmiast wyłącza gniazdko z elektrozaworem CO2.
+*   **Logi:** Możesz sprawdzić, jak szybko po włączeniu światła poziom CO2 staje się optymalny.
 
 ---
 
