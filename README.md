@@ -1,7 +1,3 @@
-Oto poprawiona i rozszerzona wersja dokumentu `README.md`. Została ona ustrukturyzowana jako profesjonalna dokumentacja techniczna, integrująca informacje o sprzęcie, konfiguracji programowej (ESPHome) oraz procedurach kalibracji.
-
----
-
 # Smart-Aqua-Lab
 
 **Kompleksowy system inteligentnego monitorowania i zarządzania parametrami akwarium.**
