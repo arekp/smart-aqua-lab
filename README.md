@@ -26,7 +26,7 @@ System opiera się na architekturze rozproszonej podzielonej na trzy warstwy:
 | **Czujnik pH** | PH-4502C + sonda E-201C | Pomiar kwasowości wody |
 | **Czujnik Temp.** | DS18B20 (Waterproof) | Pomiar temperatury (OneWire) |
 | **Wyświetlacz** | OLED SSD1306 (128x32) | Lokalny podgląd parametrów |
-| **Czujnik Jakości** | TDS Meter v1.0 | Pomiar czystości wody |
+| **Czujnik Jakości** | TDS Meter v1.0 | Pomiar czystości wody (https://pl.aliexpress.com/item/1005009863408748.html?spm=a2g0o.order_list.order_list_main.5.21ef1c24wieUSz&gatewayAdapt=glo2pol)[link] |
 | **Zasilanie** | Stabilizowane 5V DC | Zasilanie modułów pH i ESP |
 
 ### 2. Stack Technologiczny
